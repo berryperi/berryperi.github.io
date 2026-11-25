@@ -67,6 +67,19 @@ export default function ProjectDetail({ id }) {
         <p className="detail-text">{p.background}</p>
       </Block>
 
+      {p.knowledge?.length > 0 && (
+        <Block label="Knowledge Structuring">
+          <div className="decision-grid">
+            {p.knowledge.map(k => (
+              <div key={k.title} className="sub-card">
+                <p className="decision-title">{k.title}</p>
+                <p className="decision-desc">{k.desc}</p>
+              </div>
+            ))}
+          </div>
+        </Block>
+      )}
+
       {p.architecture?.length > 0 && (
         <Block label="Architecture">
           <ol className="flow">

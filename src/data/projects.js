@@ -11,7 +11,7 @@ export const projects = [
     role: '단독 설계·개발·운영',
     form: 'C# 클라이언트 + Python 서버 + Hyper-V GPU VM',
     overview:
-      '외주 제작사가 보낸 아바타 아이템 압축 파일을 올리면 3ds Max 데이터 분석, 결함 판정, 자동 수정, 원본 양식 검수 리포트, 납품 폴더 구성까지 한 번에 처리하는 사내 검수 시스템. 그래픽팀 작업자 여러 명이 클라이언트에서 동시에 요청하고, 실제 처리는 서버의 GPU VM이 맡는다.',
+      '그래픽 검수자가 남긴 자연어 코멘트와 수정 이력을 결함 유형·업무 규칙·판정 기준으로 구조화하고, 그 지식으로 외주 아바타 리소스를 자동 판정·수정해 검수 리포트와 납품 폴더까지 만드는 사내 검수 시스템. 사람의 수정 기록이 쌓일 때마다 규칙을 고치고 전 세트를 회귀 평가하는 피드백 루프로 운영한다. 그래픽팀 여러 명이 클라이언트에서 동시에 요청하고, 처리는 서버의 GPU VM이 맡는다.',
     background:
       '1차 버전은 캐릭터툴 화면을 4각도로 캡처해 Qwen3-VL-32B로 결함을 찾는 방식이었다. 프롬프트 실험에서는 업스케일한 수정 후(정상) 이미지 73장 중 44장을 결함으로 판정(오답률 60.3%)할 만큼 오탐이 많았고, 이후 단독·좌우 비교 2단계 검사를 도입했다. 실제 검수 결함 대부분은 재질 ID 그리는 순서(알파 소팅), 피직 웨이트, 절단면 정점, 법선처럼 데이터 안에 원인이 있어서 사진만으로는 위치와 원인을 특정하기 어려웠다. LLM 에이전트(Claude)가 3ds Max 데이터를 직접 보게 하는 방식도 정답 37건으로 채점해 봤지만, 가장 높은 설정도 원인까지 맞힌 것은 16건이었다. 그래서 판정은 검수자가 실제로 고친 기록에서 뽑은 규칙 엔진이 맡고, LLM은 파츠 판단·수정 위치 표시처럼 시각 판단이 필요한 부분만 맡는 구조로 다시 설계했다.',
     metrics: [
@@ -20,6 +20,16 @@ export const projects = [
       { value: '400+', label: '회귀 대조 RGM 파츠' },
       { value: '6', label: '정답 비교 세트' },
       { value: '37', label: 'LLM 판정 정량 채점 행' },
+    ],
+    knowledge: [
+      { title: '엔티티와 관계', desc: '아이템 코드(성별+번호) → 파츠(헤어·상의·하의·신발·한벌옷·얼굴) → 파일(.max·RGM·DDS) → 결함 → 수정 내역·요청 코멘트로 이어지는 관계를 정의했다. 같은 아이템의 파츠끼리 결과가 서로 영향을 주는 규칙도 이 관계 위에서 판정한다.' },
+      { title: '자연어 코멘트 → 결함 분류 체계', desc: '검수자가 엑셀 비고에 쓴 자연어 코멘트를 원본·수정본 차이와 맞대어 결함 유형으로 정리했다. 자동 수정 유형은 50여 종이다.' },
+      { title: '판정 규칙 스키마', desc: '판정 규칙을 같은 칸(유형·상태·판정 방법·수정 방법·도구·근거 파츠·비고 문구)으로 적는 스키마를 설계해 규칙 색인으로 관리했다. 초기에는 결함 유형 → 검출 결과 → 수정 스크립트 → 비고 문구를 카드 형태의 데이터(JSON)로 정의해 리포트를 생성했다.' },
+      { title: '판정 기준값을 코드에서 분리', desc: '허리·목 절단면 정상 위치 규격, 파츠별 등록 수정 사례처럼 "무엇이 정답인가"에 해당하는 기준값은 코드가 아닌 데이터 파일로 두어, 기준이 바뀌어도 로직을 건드리지 않고 갱신한다.' },
+      { title: '업무 규칙·암묵지 추출', desc: '검수자가 말로 하지 않던 기준을 규칙으로 꺼냈다. 예: 같은 아이템에 진짜 문제가 있으면 나머지 파츠는 업데이트 불가, 자동 수정과 요청은 정해진 문구로 구분, 사례가 1건뿐인 유형은 일반화하지 않고 후보로 쌓아 둔다.' },
+      { title: '결과 스키마', desc: '파츠마다 수정(fixed)·요청(req)·구분·코멘트·증거 이미지·정점 단위 상세를 담는 결과 레코드를 정의하고, 리포트 엑셀과 납품 폴더는 이 레코드에서만 만들어지게 했다.' },
+      { title: '시간에 따라 바뀌는 지식', desc: '규칙이 바뀔 때마다 버전(v1~v136), 사유, 근거 파츠, 영향 범위, 백업 위치를 기록한다. 어떤 판정이 언제 왜 바뀌었는지 되짚을 수 있다.' },
+      { title: '품질 평가', desc: '검수자 결과를 정답으로 두고 파츠별 일치·미탐·오탐을 대조한다. 규칙을 바꿀 때마다 기존 세트 전체를 다시 돌려 결과 차이를 확인한 뒤에만 배포한다.' },
     ],
     architecture: [
       { title: '클라이언트', desc: 'C# WinForms. 압축 파일 드래그 업로드, 완료일·자동 수정 옵션, 3초 간격 진행률, 작업 이어보기, 결과 자동 수신·해제, 캐릭터툴 AVATAR 복사' },
@@ -44,6 +54,7 @@ export const projects = [
       { title: '사람의 수정 기록으로 규칙 수립', desc: '검수자의 자연어 코멘트와 수정본을 원본과 비교해 결함 유형·판정 기준·코멘트 문구 체계로 정리한다. 사례가 1건뿐인 유형은 일반 규칙으로 넓히지 않고 해당 파츠 등록 또는 요청 코멘트만 남겨 과적합을 막는다.' },
       { title: '규칙을 바꿀 때마다 전체 회귀 대조', desc: '한 세트에 맞춘 규칙이 다른 세트에서 오탐을 만들지 않도록, 변경마다 기존 세트 전체를 다시 돌려 결과 차이를 확인한다.' },
       { title: '원본 불변', desc: '모든 처리는 작업 사본에서 하고, 원본은 납품 폴더에 그대로 동봉한다. 수정본은 확인용 이름으로 캐릭터툴에 따로 넣어 원본을 덮어쓰지 않는다.' },
+      { title: '개발 에이전트의 장기 기억 설계', desc: 'Claude Code로 개발하면서 세션이 바뀌어도 판단이 이어지도록 기억 구조를 직접 설계했다. 작업 규칙(CLAUDE.md), 규칙 색인, 후보 추적, 파츠별 분석 기록 50여 개, 인계 문서, 버전별 변경 기록을 역할별로 나눠 두고, 새 세션은 정해진 순서로 읽고 이어 간다.' },
       { title: '작업자 PC와 처리 분리', desc: '3ds Max·캐릭터툴 처리는 서버 VM에서 하고, 작업자 PC는 업로드와 결과 수신만 한다. 게이트웨이가 빈 VM을 골라 배정한다.' },
     ],
     troubleshooting: [
@@ -84,6 +95,110 @@ export const projects = [
       '이전에 완료된 리소스가 다시 들어온 경우를 구분하는 리소스 중복 판정',
     ],
     skills: ['Python', 'C# (.NET 8, WinForms)', '3ds Max 2020 / MaxScript', 'Claude (CLI)', 'Qwen3-VL-32B', 'RGM 바이너리 파서', 'Hyper-V (GPU-P)', 'openpyxl', 'Claude Code'],
+  },
+  {
+    id: 'vlm-mcp',
+    accent: 'indigo',
+    category: '생성형 AI',
+    name: 'VLM Image MCP Server',
+    subtitle: 'Claude Code 용 이미지 분석·생성·편집 MCP 서버',
+    period: '',
+    tag: 'Work',
+    collab: true,
+    status: '운영 중',
+    role: '공동 개발',
+    overview:
+      '사내 GPU 서버의 VLM과 이미지 생성·편집 모델을 MCP(Model Context Protocol) 도구로 감싸 Claude Code 에서 바로 부를 수 있게 만든 서버. 기획·사업팀과 개발자가 Unity UI 목업과 화면 초안을 대화만으로 만들고 고친다.',
+    background:
+      'Claude Code 는 코드와 문서 작업에는 강하지만 이미지를 만들거나 고치는 일은 직접 할 수 없었다. 현업은 UI 시안 하나를 바꾸려 해도 디자이너에게 요청하거나 별도 생성 툴을 오가야 했다. 사내 서버에 이미 있던 VLM과 이미지 편집 모델을 에이전트가 쓸 수 있는 도구로 노출하면, 대화 흐름 안에서 이미지 작업까지 이어 갈 수 있다고 판단했다.',
+    metrics: [
+      { value: '3+', label: '사용 팀' },
+      { value: '2', label: 'MCP 로 감싼 모델' },
+    ],
+    architecture: [
+      { title: 'Claude Code (클라이언트)', desc: '사용자가 자연어로 요청하면 에이전트가 MCP 도구(분석·생성·편집)를 골라 호출' },
+      { title: 'MCP 서버', desc: '도구 정의와 입력 검증, 이미지 파일 경로·결과 전달' },
+      { title: 'VLM (Qwen3-VL-32B, llama.cpp GGUF)', desc: '원본 이미지를 서버에서 직접 보고 상황을 분석해 편집 모델용 프롬프트로 다시 씀' },
+      { title: '이미지 편집 모델 (Qwen-Image-Edit, PyTorch BF16)', desc: '다시 쓴 프롬프트로 생성·편집, 결과를 다음 단계 입력으로 연결' },
+    ],
+    coreFeatures: [
+      '이미지 분석·생성·편집 기능을 MCP 도구로 노출해 Claude Code 대화 안에서 호출',
+      '서버 쪽 VLM이 원본 이미지를 직접 분석하고 편집 모델에 맞는 프롬프트로 재작성',
+      '이미지를 클라이언트와 주고받지 않고 서버 안에서 분석 → 편집 → 재편집을 연쇄 실행',
+      'Docker Compose 로 VLM·편집 모델·MCP 서버를 묶어 배포',
+    ],
+    decisions: [
+      { title: '프롬프트 재작성을 서버 VLM에 맡김', desc: '사용자 요청 문장을 그대로 편집 모델에 넣으면 원본 맥락이 빠진다. 원본을 실제로 본 VLM이 편집 지시를 다시 쓰게 해 결과 일관성을 높였다.' },
+      { title: '이미지 왕복 제거', desc: '에이전트와 서버 사이에 이미지를 계속 주고받으면 느리고 컨텍스트를 많이 쓴다. 이미지는 서버에 두고 경로와 결과 요약만 오가게 했다.' },
+    ],
+    troubleshooting: [
+      {
+        problem: '에이전트가 이미지 생성·편집을 직접 하지 못해 작업 흐름이 끊김',
+        solution: '생성·편집 모델을 MCP 도구로 감싸 Claude Code 가 필요할 때 호출하도록 연결했다.',
+      },
+      {
+        problem: '짧은 사용자 요청만으로는 편집 결과가 원본과 동떨어짐',
+        solution: '서버 VLM이 원본을 분석해 구도·대상·변경점을 담은 프롬프트로 재작성한 뒤 편집 모델에 전달했다.',
+      },
+    ],
+    achievements: [
+      '',      // 성과 수치 입력
+      '기획·사업팀과 개발자 등 3개 이상 팀이 UI 목업·화면 초안 작업에 사용',
+    ],
+    skills: ['MCP', 'Claude Code', 'Qwen3-VL-32B', 'Qwen-Image-Edit', 'llama.cpp (GGUF)', 'PyTorch', 'Docker Compose', 'Python'],
+  },
+  {
+    id: 'asset-search',
+    accent: 'sky',
+    category: '생성형 AI',
+    name: 'Asset Similarity Search',
+    subtitle: '의류·헤어 형태 기반 캐릭터 에셋 유사도 검색',
+    period: '',
+    tag: 'Work',
+    collab: true,
+    status: '운영 중',
+    role: '공동 개발',
+    overview:
+      '디자이너가 이미지 한 장으로 사내 캐릭터 의류·헤어 에셋 5만 장 중 형태가 비슷한 것을 찾는 검색 시스템. 세그멘테이션과 깊이 지도로 색이 아닌 실루엣·입체감을 뽑아 임베딩하고 Faiss 로 검색한다.',
+    background:
+      '디자이너가 신규 의상·헤어를 만들 때 비슷한 기존 에셋이 있는지 확인하려면 폴더를 직접 뒤져야 했다. 일반 이미지 임베딩은 색과 배경에 끌려 형태가 비슷한 에셋을 잘 찾지 못했다. 그래서 의류·헤어 영역만 잘라 깊이 지도로 바꾼 뒤 임베딩해 형태 위주로 검색되게 했다.',
+    metrics: [
+      { value: '50K', label: '색인한 이미지' },
+      { value: '2', label: '병렬 파이프라인 (의류·헤어)' },
+      { value: '512', label: '임베딩 차원' },
+    ],
+    architecture: [
+      { title: '의류 파이프라인', desc: 'SegFormer-b2(ATR)로 상의·하의·원피스 영역 분리 → Distill-Any-Depth 깊이 지도' },
+      { title: '헤어 파이프라인', desc: 'SAM3 텍스트 프롬프트(hair·face·hat 등)로 헤어 분리, 상단 영역 크롭 → Marigold 깊이 지도' },
+      { title: '임베딩·색인', desc: 'CLIP ViT-B/32 512차원 임베딩 → Faiss IndexFlatIP(코사인 유사도) 색인, 경로 매핑 테이블' },
+      { title: '검색 UI', desc: 'Gradio 검색 화면, 파일 이름 접두어 기반 성별 필터' },
+    ],
+    coreFeatures: [
+      '의류·헤어별 세그멘테이션 + 깊이 지도로 형태 중심 특징 추출',
+      'CLIP 임베딩 + Faiss 벡터 검색으로 5만 장 규모 즉시 검색',
+      'DB 구축·검색·경로 매핑·Gradio UI 를 스크립트 단위로 분리해 재색인·운영 단순화',
+      '성별 필터 등 디자이너 작업 흐름에 맞춘 검색 조건',
+    ],
+    decisions: [
+      { title: '색 대신 형태로 임베딩', desc: '원본 이미지 임베딩은 색·배경 영향이 커서, 영역 분리 후 깊이 지도로 바꿔 실루엣과 입체감이 검색 기준이 되게 했다.' },
+      { title: '의류와 헤어 파이프라인 분리', desc: '헤어는 의류 세그멘테이션 모델로 잘 안 잡혀 텍스트 프롬프트 기반 SAM3와 별도 깊이 모델을 썼다.' },
+      { title: '정확 검색 색인(IndexFlatIP)', desc: '5만 장 규모에서는 근사 색인 없이도 충분히 빨라, 재현율 손실이 없는 정확 내적 검색을 택했다.' },
+    ],
+    troubleshooting: [
+      {
+        problem: '일반 이미지 임베딩이 색과 배경이 비슷한 에셋만 찾아옴',
+        solution: '세그멘테이션으로 대상 영역만 남기고 깊이 지도로 변환해 형태 정보만 임베딩했다.',
+      },
+      {
+        problem: '헤어 영역이 의류 세그멘테이션 모델에서 제대로 분리되지 않음',
+        solution: 'SAM3 텍스트 프롬프트로 헤어·얼굴·모자를 구분하고 상단 영역을 잘라 별도 파이프라인으로 처리했다.',
+      },
+    ],
+    achievements: [
+      '',      // 성과 수치 입력
+      '디자이너가 사내 캐릭터 에셋 5만 장을 형태 기준으로 검색하는 도구로 사용',
+    ],
+    skills: ['CLIP', 'Faiss', 'SegFormer', 'SAM3', 'Distill-Any-Depth', 'Marigold', 'Gradio', 'Python'],
   },
   {
     id: 'max-autofix',
@@ -208,46 +323,46 @@ export const projects = [
     skills: ['C# (.NET 8.0)', 'Python', 'PaddleOCR PP-OCRv5', 'DirectX 11 / DXGI', 'SharpDX', 'Qwen3 VL 32B', 'OpenCV', 'Interception Driver', 'REST API'],
   },
   {
-    id: 'tts',
-    category: '음성·사운드',
-    accent: 'sky',
-    name: 'TTS / STT / RVC',
-    subtitle: '오픈소스 음성 AI 모델 서빙',
-    period: '2025.03 - 2025.06',
+    id: 'image-service',
+    accent: 'cyan',
+    category: '생성형 AI',
+    name: 'Image Processing Service',
+    subtitle: '초해상도·배경 제거 통합 이미지 처리 서비스',
+    period: '',
     tag: 'Work',
+    collab: true,
+    status: '운영 중',
+    role: '공동 개발',
     overview:
-      'Hugging Face Hub/Spaces/Papers를 활용해 최신 음성 AI 모델을 리서치하고 로컬 GPU 서버(A100)에 직접 서빙. 기획팀 성우 녹음 비용 절감 및 게임 캐릭터 대사 처리에 기여.',
+      '오픈소스 초해상도(InvSamplerSR)와 배경 제거(U²-Net) 모델을 하나의 Gradio 서비스로 묶어 그래픽 파트가 업스케일·배경 제거·일괄 처리를 웹에서 바로 쓰게 만든 도구. 투명 배경(RGBA) 이미지도 그대로 처리하도록 모델 입출력을 확장했다.',
     background:
-      '게임 개발 중 캐릭터 대사 녹음 비용과 일정이 지속적으로 프로젝트 진행을 제약하고 있었다. 오픈소스 TTS/RVC 모델을 사내 GPU 서버에 서빙하면 외부 성우 섭외 없이 대사를 빠르게 생성할 수 있다는 판단 하에 도입을 추진했다.',
+      '그래픽 파트는 게임 리소스 이미지를 키우거나 배경을 지울 때 서로 다른 툴을 오가며 한 장씩 처리했다. 게임 리소스는 투명 배경 PNG가 많은데, 공개 초해상도 모델은 투명 배경을 학습하지 않아 알파 채널이 깨졌다.',
+    metrics: [
+      { value: '4', label: '처리 탭 (SR·배경 제거·통합·일괄)' },
+      { value: '3', label: '업스케일 배율 (2x·4x·8x)' },
+      { value: '2', label: '통합한 오픈소스 모델' },
+    ],
     coreFeatures: [
-      'paperswithcode, Hugging Face Papers, GitHub 기반 최신 AI 기술 지속 R&D',
-      '오픈소스 TTS(SparkTTS, OpenAudio S1), Whisper STT 로컬 구현 및 REST API 서빙',
-      'RVC(Retrieval-based Voice Conversion) 학습·추론 GUI — 섭외 성우 보이스를 게임 캐릭터 대사에 적용',
-      'A100 서버에서 Linux, Docker, Python 기반 GPU 추론 환경 구성·운영',
-      'HF Spaces 데모 사전 검증 → Hub 모델 다운로드 → 로컬 서빙까지 일관된 도입 프로세스 수립',
+      '초해상도 2x·4x·8x, 배경 제거, 두 기능 연속 처리, ZIP 일괄 처리',
+      '초해상도 경로를 RGBA 입출력으로 확장해 투명 배경 리소스 처리',
+      '완전 투명이 아닌 픽셀에만 조건부 가우시안 블러를 적용해 경계 품질 보정',
+      'Docker 기반 배포',
     ],
     troubleshooting: [
       {
-        problem: '모델마다 의존성·CUDA 버전이 달라 동일 서버에서 충돌 발생',
-        solution: '모델별 Docker 컨테이너 분리 구성으로 격리, GPU 패스스루로 각 컨테이너에서 독립 추론',
+        problem: '공개 초해상도 모델이 투명 배경을 학습하지 않아 알파 채널이 깨짐',
+        solution: '색상과 알파 채널을 나눠 처리하는 RGBA 경로를 추가하고, 반투명 경계에만 조건부 블러를 적용했다.',
       },
       {
-        problem: 'RVC 학습·추론을 CLI로만 사용 가능해 비개발자 팀원이 활용하기 어려웠음',
-        solution: 'Gradio 기반 GUI 래퍼 직접 구현 — 파일 업로드·학습·추론을 웹 인터페이스로 제공',
+        problem: '여러 장을 처리할 때 한 장씩 올리고 받아야 함',
+        solution: 'ZIP 업로드·다운로드 일괄 처리 탭을 만들었다.',
       },
     ],
-    tasks: [
-      'paperswithcode, Hugging Face Papers, GitHub 기반 최신 AI 기술 R&D',
-      '오픈소스 TTS(SparkTTS, OpenAudio S1), Whisper STT 로컬 구현 및 REST API 형태 서빙',
-      'RVC(Retrieval-based Voice Conversion) 학습·추론 GUI 구현 — 섭외 성우 보이스를 게임 캐릭터 대사에 적용',
-      'A100 서버에서 Linux, Docker, Python 기반 GPU 추론 환경 구성·운영',
-      'Hugging Face Spaces 데모 사전 검증 → Hub 모델 다운로드 → 로컬 서빙까지 일관된 도입 프로세스 수립',
-    ],
     achievements: [
-      '오픈소스 TTS/Whisper 구현으로 성우 섭외 비용 50% 절감',
-      'RVC GUI 구현으로 게임 캐릭터 대사 처리 비용 30% 절감',
+      '',      // 성과 수치 입력
+      '그래픽 파트 실무 도구로 채택',
     ],
-    skills: ['Python', 'PyTorch', 'Hugging Face Transformers', 'SparkTTS', 'OpenAudio S1', 'Whisper', 'RVC', 'Docker', 'Linux (A100)'],
+    skills: ['InvSamplerSR', 'U²-Net', 'OpenCV', 'NumPy', 'Gradio', 'Docker', 'Python'],
   },
   {
     id: 'midi',
@@ -314,108 +429,46 @@ export const projects = [
     skills: ['Python', 'PyTorch (CUDA 12.1)', 'Conformer', 'Librosa', 'Gradio', 'Docker', 'NVIDIA Container Toolkit'],
   },
   {
-    id: 'vlm-mcp',
-    accent: 'indigo',
-    category: '생성형 AI',
-    name: 'VLM Image MCP Server',
-    subtitle: 'Claude Code 용 이미지 분석·생성·편집 MCP 서버',
-    period: '',
-    tag: 'Work',
-    collab: true,
-    status: '운영 중',
-    role: '공동 개발',
-    overview:
-      '사내 GPU 서버의 VLM과 이미지 생성·편집 모델을 MCP(Model Context Protocol) 도구로 감싸 Claude Code 에서 바로 부를 수 있게 만든 서버. 기획·사업팀과 개발자가 Unity UI 목업과 화면 초안을 대화만으로 만들고 고친다.',
-    background:
-      'Claude Code 는 코드와 문서 작업에는 강하지만 이미지를 만들거나 고치는 일은 직접 할 수 없었다. 현업은 UI 시안 하나를 바꾸려 해도 디자이너에게 요청하거나 별도 생성 툴을 오가야 했다. 사내 서버에 이미 있던 VLM과 이미지 편집 모델을 에이전트가 쓸 수 있는 도구로 노출하면, 대화 흐름 안에서 이미지 작업까지 이어 갈 수 있다고 판단했다.',
-    metrics: [
-      { value: '3+', label: '사용 팀' },
-      { value: '2', label: 'MCP 로 감싼 모델' },
-    ],
-    architecture: [
-      { title: 'Claude Code (클라이언트)', desc: '사용자가 자연어로 요청하면 에이전트가 MCP 도구(분석·생성·편집)를 골라 호출' },
-      { title: 'MCP 서버', desc: '도구 정의와 입력 검증, 이미지 파일 경로·결과 전달' },
-      { title: 'VLM (Qwen3-VL-32B, llama.cpp GGUF)', desc: '원본 이미지를 서버에서 직접 보고 상황을 분석해 편집 모델용 프롬프트로 다시 씀' },
-      { title: '이미지 편집 모델 (Qwen-Image-Edit, PyTorch BF16)', desc: '다시 쓴 프롬프트로 생성·편집, 결과를 다음 단계 입력으로 연결' },
-    ],
-    coreFeatures: [
-      '이미지 분석·생성·편집 기능을 MCP 도구로 노출해 Claude Code 대화 안에서 호출',
-      '서버 쪽 VLM이 원본 이미지를 직접 분석하고 편집 모델에 맞는 프롬프트로 재작성',
-      '이미지를 클라이언트와 주고받지 않고 서버 안에서 분석 → 편집 → 재편집을 연쇄 실행',
-      'Docker Compose 로 VLM·편집 모델·MCP 서버를 묶어 배포',
-    ],
-    decisions: [
-      { title: '프롬프트 재작성을 서버 VLM에 맡김', desc: '사용자 요청 문장을 그대로 편집 모델에 넣으면 원본 맥락이 빠진다. 원본을 실제로 본 VLM이 편집 지시를 다시 쓰게 해 결과 일관성을 높였다.' },
-      { title: '이미지 왕복 제거', desc: '에이전트와 서버 사이에 이미지를 계속 주고받으면 느리고 컨텍스트를 많이 쓴다. 이미지는 서버에 두고 경로와 결과 요약만 오가게 했다.' },
-    ],
-    troubleshooting: [
-      {
-        problem: '에이전트가 이미지 생성·편집을 직접 하지 못해 작업 흐름이 끊김',
-        solution: '생성·편집 모델을 MCP 도구로 감싸 Claude Code 가 필요할 때 호출하도록 연결했다.',
-      },
-      {
-        problem: '짧은 사용자 요청만으로는 편집 결과가 원본과 동떨어짐',
-        solution: '서버 VLM이 원본을 분석해 구도·대상·변경점을 담은 프롬프트로 재작성한 뒤 편집 모델에 전달했다.',
-      },
-    ],
-    achievements: [
-      '',      // 성과 수치 입력
-      '기획·사업팀과 개발자 등 3개 이상 팀이 UI 목업·화면 초안 작업에 사용',
-    ],
-    skills: ['MCP', 'Claude Code', 'Qwen3-VL-32B', 'Qwen-Image-Edit', 'llama.cpp (GGUF)', 'PyTorch', 'Docker Compose', 'Python'],
-  },
-  {
-    id: 'asset-search',
+    id: 'tts',
+    category: '음성·사운드',
     accent: 'sky',
-    category: '생성형 AI',
-    name: 'Asset Similarity Search',
-    subtitle: '의류·헤어 형태 기반 캐릭터 에셋 유사도 검색',
-    period: '',
+    name: 'TTS / STT / RVC',
+    subtitle: '오픈소스 음성 AI 모델 서빙',
+    period: '2025.03 - 2025.06',
     tag: 'Work',
-    collab: true,
-    status: '운영 중',
-    role: '공동 개발',
     overview:
-      '디자이너가 이미지 한 장으로 사내 캐릭터 의류·헤어 에셋 5만 장 중 형태가 비슷한 것을 찾는 검색 시스템. 세그멘테이션과 깊이 지도로 색이 아닌 실루엣·입체감을 뽑아 임베딩하고 Faiss 로 검색한다.',
+      'Hugging Face Hub/Spaces/Papers를 활용해 최신 음성 AI 모델을 리서치하고 로컬 GPU 서버(A100)에 직접 서빙. 기획팀 성우 녹음 비용 절감 및 게임 캐릭터 대사 처리에 기여.',
     background:
-      '디자이너가 신규 의상·헤어를 만들 때 비슷한 기존 에셋이 있는지 확인하려면 폴더를 직접 뒤져야 했다. 일반 이미지 임베딩은 색과 배경에 끌려 형태가 비슷한 에셋을 잘 찾지 못했다. 그래서 의류·헤어 영역만 잘라 깊이 지도로 바꾼 뒤 임베딩해 형태 위주로 검색되게 했다.',
-    metrics: [
-      { value: '50K', label: '색인한 이미지' },
-      { value: '2', label: '병렬 파이프라인 (의류·헤어)' },
-      { value: '512', label: '임베딩 차원' },
-    ],
-    architecture: [
-      { title: '의류 파이프라인', desc: 'SegFormer-b2(ATR)로 상의·하의·원피스 영역 분리 → Distill-Any-Depth 깊이 지도' },
-      { title: '헤어 파이프라인', desc: 'SAM3 텍스트 프롬프트(hair·face·hat 등)로 헤어 분리, 상단 영역 크롭 → Marigold 깊이 지도' },
-      { title: '임베딩·색인', desc: 'CLIP ViT-B/32 512차원 임베딩 → Faiss IndexFlatIP(코사인 유사도) 색인, 경로 매핑 테이블' },
-      { title: '검색 UI', desc: 'Gradio 검색 화면, 파일 이름 접두어 기반 성별 필터' },
-    ],
+      '게임 개발 중 캐릭터 대사 녹음 비용과 일정이 지속적으로 프로젝트 진행을 제약하고 있었다. 오픈소스 TTS/RVC 모델을 사내 GPU 서버에 서빙하면 외부 성우 섭외 없이 대사를 빠르게 생성할 수 있다는 판단 하에 도입을 추진했다.',
     coreFeatures: [
-      '의류·헤어별 세그멘테이션 + 깊이 지도로 형태 중심 특징 추출',
-      'CLIP 임베딩 + Faiss 벡터 검색으로 5만 장 규모 즉시 검색',
-      'DB 구축·검색·경로 매핑·Gradio UI 를 스크립트 단위로 분리해 재색인·운영 단순화',
-      '성별 필터 등 디자이너 작업 흐름에 맞춘 검색 조건',
-    ],
-    decisions: [
-      { title: '색 대신 형태로 임베딩', desc: '원본 이미지 임베딩은 색·배경 영향이 커서, 영역 분리 후 깊이 지도로 바꿔 실루엣과 입체감이 검색 기준이 되게 했다.' },
-      { title: '의류와 헤어 파이프라인 분리', desc: '헤어는 의류 세그멘테이션 모델로 잘 안 잡혀 텍스트 프롬프트 기반 SAM3와 별도 깊이 모델을 썼다.' },
-      { title: '정확 검색 색인(IndexFlatIP)', desc: '5만 장 규모에서는 근사 색인 없이도 충분히 빨라, 재현율 손실이 없는 정확 내적 검색을 택했다.' },
+      'paperswithcode, Hugging Face Papers, GitHub 기반 최신 AI 기술 지속 R&D',
+      '오픈소스 TTS(SparkTTS, OpenAudio S1), Whisper STT 로컬 구현 및 REST API 서빙',
+      'RVC(Retrieval-based Voice Conversion) 학습·추론 GUI — 섭외 성우 보이스를 게임 캐릭터 대사에 적용',
+      'A100 서버에서 Linux, Docker, Python 기반 GPU 추론 환경 구성·운영',
+      'HF Spaces 데모 사전 검증 → Hub 모델 다운로드 → 로컬 서빙까지 일관된 도입 프로세스 수립',
     ],
     troubleshooting: [
       {
-        problem: '일반 이미지 임베딩이 색과 배경이 비슷한 에셋만 찾아옴',
-        solution: '세그멘테이션으로 대상 영역만 남기고 깊이 지도로 변환해 형태 정보만 임베딩했다.',
+        problem: '모델마다 의존성·CUDA 버전이 달라 동일 서버에서 충돌 발생',
+        solution: '모델별 Docker 컨테이너 분리 구성으로 격리, GPU 패스스루로 각 컨테이너에서 독립 추론',
       },
       {
-        problem: '헤어 영역이 의류 세그멘테이션 모델에서 제대로 분리되지 않음',
-        solution: 'SAM3 텍스트 프롬프트로 헤어·얼굴·모자를 구분하고 상단 영역을 잘라 별도 파이프라인으로 처리했다.',
+        problem: 'RVC 학습·추론을 CLI로만 사용 가능해 비개발자 팀원이 활용하기 어려웠음',
+        solution: 'Gradio 기반 GUI 래퍼 직접 구현 — 파일 업로드·학습·추론을 웹 인터페이스로 제공',
       },
     ],
-    achievements: [
-      '',      // 성과 수치 입력
-      '디자이너가 사내 캐릭터 에셋 5만 장을 형태 기준으로 검색하는 도구로 사용',
+    tasks: [
+      'paperswithcode, Hugging Face Papers, GitHub 기반 최신 AI 기술 R&D',
+      '오픈소스 TTS(SparkTTS, OpenAudio S1), Whisper STT 로컬 구현 및 REST API 형태 서빙',
+      'RVC(Retrieval-based Voice Conversion) 학습·추론 GUI 구현 — 섭외 성우 보이스를 게임 캐릭터 대사에 적용',
+      'A100 서버에서 Linux, Docker, Python 기반 GPU 추론 환경 구성·운영',
+      'Hugging Face Spaces 데모 사전 검증 → Hub 모델 다운로드 → 로컬 서빙까지 일관된 도입 프로세스 수립',
     ],
-    skills: ['CLIP', 'Faiss', 'SegFormer', 'SAM3', 'Distill-Any-Depth', 'Marigold', 'Gradio', 'Python'],
+    achievements: [
+      '오픈소스 TTS/Whisper 구현으로 성우 섭외 비용 50% 절감',
+      'RVC GUI 구현으로 게임 캐릭터 대사 처리 비용 30% 절감',
+    ],
+    skills: ['Python', 'PyTorch', 'Hugging Face Transformers', 'SparkTTS', 'OpenAudio S1', 'Whisper', 'RVC', 'Docker', 'Linux (A100)'],
   },
   {
     id: 'texture-gen',
@@ -466,47 +519,5 @@ export const projects = [
       '',      // 성과 수치 입력
     ],
     skills: ['Stable Diffusion v1.5', 'DreamBooth', 'PyTorch', 'xFormers', 'Gradio', 'Tkinter', 'Docker', 'Python'],
-  },
-  {
-    id: 'image-service',
-    accent: 'cyan',
-    category: '생성형 AI',
-    name: 'Image Processing Service',
-    subtitle: '초해상도·배경 제거 통합 이미지 처리 서비스',
-    period: '',
-    tag: 'Work',
-    collab: true,
-    status: '운영 중',
-    role: '공동 개발',
-    overview:
-      '오픈소스 초해상도(InvSamplerSR)와 배경 제거(U²-Net) 모델을 하나의 Gradio 서비스로 묶어 그래픽 파트가 업스케일·배경 제거·일괄 처리를 웹에서 바로 쓰게 만든 도구. 투명 배경(RGBA) 이미지도 그대로 처리하도록 모델 입출력을 확장했다.',
-    background:
-      '그래픽 파트는 게임 리소스 이미지를 키우거나 배경을 지울 때 서로 다른 툴을 오가며 한 장씩 처리했다. 게임 리소스는 투명 배경 PNG가 많은데, 공개 초해상도 모델은 투명 배경을 학습하지 않아 알파 채널이 깨졌다.',
-    metrics: [
-      { value: '4', label: '처리 탭 (SR·배경 제거·통합·일괄)' },
-      { value: '3', label: '업스케일 배율 (2x·4x·8x)' },
-      { value: '2', label: '통합한 오픈소스 모델' },
-    ],
-    coreFeatures: [
-      '초해상도 2x·4x·8x, 배경 제거, 두 기능 연속 처리, ZIP 일괄 처리',
-      '초해상도 경로를 RGBA 입출력으로 확장해 투명 배경 리소스 처리',
-      '완전 투명이 아닌 픽셀에만 조건부 가우시안 블러를 적용해 경계 품질 보정',
-      'Docker 기반 배포',
-    ],
-    troubleshooting: [
-      {
-        problem: '공개 초해상도 모델이 투명 배경을 학습하지 않아 알파 채널이 깨짐',
-        solution: '색상과 알파 채널을 나눠 처리하는 RGBA 경로를 추가하고, 반투명 경계에만 조건부 블러를 적용했다.',
-      },
-      {
-        problem: '여러 장을 처리할 때 한 장씩 올리고 받아야 함',
-        solution: 'ZIP 업로드·다운로드 일괄 처리 탭을 만들었다.',
-      },
-    ],
-    achievements: [
-      '',      // 성과 수치 입력
-      '그래픽 파트 실무 도구로 채택',
-    ],
-    skills: ['InvSamplerSR', 'U²-Net', 'OpenCV', 'NumPy', 'Gradio', 'Docker', 'Python'],
   },
 ]

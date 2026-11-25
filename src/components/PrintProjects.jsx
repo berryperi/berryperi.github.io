@@ -17,6 +17,13 @@ function PrintProject({ p }) {
         </div>
       )}
 
+      {p.knowledge?.length > 0 && (
+        <>
+          <div className="print-label">Knowledge Structuring</div>
+          <ul className="print-list">{p.knowledge.map(k => <li key={k.title}><b>{k.title}</b> — {k.desc}</li>)}</ul>
+        </>
+      )}
+
       <div className="print-label">Core Features</div>
       <ul className="print-list">{p.coreFeatures.map((f, i) => <li key={i}>{f}</li>)}</ul>
 
