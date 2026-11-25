@@ -1,9 +1,8 @@
-import { ScanSearch, Gamepad2, AudioLines, Music4, BarChart3, Boxes, Radio, Globe, Bus } from 'lucide-react'
+import { Wrench, ScanSearch, Gamepad2, AudioLines, Music4, Boxes, Plug, Search, Shirt, ImageUp } from 'lucide-react'
 
 const ICONS = {
-  augraphics: ScanSearch, aucontrol: Gamepad2, tts: AudioLines, midi: Music4,
-  'golf-analysis': BarChart3, 'object-detection': Boxes, 'music-genre': Radio,
-  webcrawling: Globe, 'shuttle-monitor': Bus,
+  augraphics: ScanSearch, 'max-autofix': Wrench, aucontrol: Gamepad2, tts: AudioLines, midi: Music4,
+  'vlm-mcp': Plug, 'asset-search': Search, 'texture-gen': Shirt, 'image-service': ImageUp,
 }
 
 export default function ProjectBanner({ p, large = false }) {

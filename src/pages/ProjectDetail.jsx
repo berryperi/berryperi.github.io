@@ -38,7 +38,7 @@ export default function ProjectDetail({ id }) {
       </a>
 
       <header className="detail-head">
-        <p className="mono-label">{p.tag === 'Work' ? 'work' : 'side'}</p>
+        <p className="mono-label">{p.category}{p.collab ? ' · 공동 개발' : ''}</p>
         <h1 className="detail-title">{p.name}</h1>
         <p className="detail-sub">{p.subtitle}</p>
         <p className="detail-overview">{p.overview}</p>

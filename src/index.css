@@ -281,6 +281,11 @@ ul, ol { list-style: none; }
 .project-card:hover .project-arrow { color: var(--cyan); transform: translate(2px, -2px); }
 .project-title { margin-top: 8px; font-size: 1.25rem; font-weight: 600; transition: color 0.2s; }
 .project-card:hover .project-title { color: var(--accent-text); }
+.collab-badge {
+  display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  font-size: 11px; font-weight: 500; color: var(--accent-text);
+  border: 1px solid var(--accent-line); background: var(--accent-bg);
+}
 .project-sub { margin-top: 2px; font-size: 0.88rem; color: var(--text-2); }
 .project-desc {
   margin: 10px 0 16px; font-size: 0.85rem; line-height: 1.65; color: var(--text-3);

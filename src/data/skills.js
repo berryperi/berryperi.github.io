@@ -1,9 +1,9 @@
 export const skills = [
-  { category: 'Language',   items: ['Python', 'C#'] },
-  { category: 'AI / ML',    items: ['PyTorch', 'Librosa', 'Transformers (Hugging Face)'] },
-  { category: 'AI 모델',    items: ['Qwen3 VL 32B', 'PaddleOCR PP-OCRv5', 'Whisper', 'RVC', 'SparkTTS', 'Conformer'] },
-  { category: 'Data',       items: ['Pandas', 'NumPy', 'Matplotlib'] },
-  { category: 'Infra',      items: ['Docker', 'Linux (A100/H100 서버 운영)', 'Hyper-V (GPU-P)'] },
-  { category: '3D / 그래픽', items: ['3ds Max / MaxScript', 'RGM 바이너리 해석', 'DDS 텍스처'] },
-  { category: '기타',       items: ['Win32 API', 'ClosedXML', 'openpyxl', 'REST API 설계·연동', 'Gradio', 'Claude Code'] },
+  { category: 'Language',        items: ['Python', 'C#', 'C++ (3ds Max SDK)', 'MaxScript'] },
+  { category: 'LLM · Agent',     items: ['Claude Code', 'Claude CLI', 'MCP', 'Qwen3-VL-32B', '프롬프트 설계', 'LLM 출력 정량 평가'] },
+  { category: 'Retrieval · Vision', items: ['CLIP', 'Faiss', 'SegFormer', 'SAM', 'PaddleOCR PP-OCRv5'] },
+  { category: 'Generative · Audio', items: ['Stable Diffusion', 'DreamBooth', 'Conformer', 'Whisper', 'RVC', 'SparkTTS'] },
+  { category: 'Data · Backend',  items: ['데이터 파이프라인', 'REST API', 'Gradio', 'Pandas', 'openpyxl', 'ClosedXML'] },
+  { category: 'Infra',           items: ['Docker', 'Linux (A100/H100)', 'Hyper-V (GPU-P)', 'llama.cpp'] },
+  { category: '3D · Game Data',  items: ['3ds Max', 'RGM 바이너리 파서', 'DDS 텍스처', 'Win32 API'] },
 ]

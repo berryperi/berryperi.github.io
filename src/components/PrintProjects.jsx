@@ -7,7 +7,7 @@ function PrintProject({ p }) {
     <div className="print-project">
       <div className="print-project-name">{p.name} — {p.subtitle}</div>
       <div className="print-project-meta">
-        {[p.period, p.tag === 'Work' ? '실무' : '개인·학업', p.role].filter(Boolean).join(' · ')}
+        {[p.period, p.category, p.role].filter(Boolean).join(' · ')}
       </div>
       <p className="print-text">{p.overview}</p>
 
